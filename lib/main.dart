@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -19,6 +21,13 @@ class HttpApp extends StatefulWidget {
 
 class _HttpAppState extends State<HttpApp> {
   String result = '';
+  late List data;
+
+  @override
+  void initState() {
+    super.initState();
+    data = [];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,20 +37,56 @@ class _HttpAppState extends State<HttpApp> {
       ),
       body: Container(
         child: Center(
-          child: Text('$result'),
+          child: data.isEmpty
+              ? Text(
+                  '데이터가 없습니다.',
+                  style: TextStyle(fontSize: 20),
+                  textAlign: TextAlign.center,
+                )
+              : ListView.builder(
+                  itemBuilder: (context, index) {
+                    return Card(
+                        child: Container(
+                      child: Column(
+                        children: [
+                          Text(data[index]['title'].toString()),
+                          Text(data[index]['authors'].toString()),
+                          Text(data[index]['sale_price'].toString()),
+                          Text(data[index]['status'].toString()),
+                          Image.network(
+                            data[index]['thumbnail'],
+                            height: 100,
+                            width: 100,
+                            fit: BoxFit.contain,
+                          )
+                        ],
+                      ),
+                    ));
+                  },
+                  itemCount: data.length,
+                ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _onButtonPressed,
+        onPressed: () {
+          getJsonData();
+        },
         child: Icon(Icons.file_download),
       ),
     );
   }
 
-  void _onButtonPressed() async {
-    var response = await http.get(Uri.parse('http://www.google.com'));
+  Future<String> getJsonData() async {
+    String kakaoRestApiKey = '';
+    var uri = Uri.parse(
+        'https://dapi.kakao.com/v3/search/book?target=title&query=doit');
+    var response = await http
+        .get(uri, headers: {"Authorization": "KakaoAK $kakaoRestApiKey"});
     setState(() {
-      result = response.body;
+      var jsonData = json.decode(response.body);
+      List results = jsonData['documents'];
+      data.addAll(results);
     });
+    return response.body;
   }
 }
