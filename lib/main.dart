@@ -22,18 +22,25 @@ class HttpApp extends StatefulWidget {
 class _HttpAppState extends State<HttpApp> {
   String result = '';
   late List data;
+  late TextEditingController _editingController;
 
   @override
   void initState() {
     super.initState();
     data = [];
+    _editingController = TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Http Example'),
+        title: TextField(
+          controller: _editingController,
+          style: TextStyle(color: Colors.white),
+          keyboardType: TextInputType.text,
+          decoration: InputDecoration(hintText: '검색어를 입력하세요'),
+        ),
       ),
       body: Container(
         child: Center(
@@ -88,8 +95,9 @@ class _HttpAppState extends State<HttpApp> {
 
   Future<String> getJsonData() async {
     String kakaoRestApiKey = '';
+    String query = _editingController.value.text;
     var uri = Uri.parse(
-        'https://dapi.kakao.com/v3/search/book?target=title&query=doit');
+        'https://dapi.kakao.com/v3/search/book?target=title&query=$query');
     var response = await http
         .get(uri, headers: {"Authorization": "KakaoAK $kakaoRestApiKey"});
     setState(() {
